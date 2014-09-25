@@ -8,6 +8,12 @@ $configFilename = file_exists(__DIR__.'/../config.json')
 
 $config = json_decode(file_get_contents($configFilename), true);
 
+if (json_last_error() !== JSON_ERROR_NONE) {
+    header('HTTP/1.1 500 Internal Server Error', true, 500);
+    echo sprintf("Error decoding config JSON: %s.\n", json_last_error_msg());
+    exit;
+}
+
 $allowedIps = isset($config['allowed-ips'])
     ? $config['allowed-ips']
     : array('207.97.227.253', '50.57.128.197', '108.171.174.178');
@@ -22,7 +28,7 @@ $headers = getallheaders();
 if (isset($headers['Content-Type']) && 'application/json' === $headers['Content-Type']) {
     $body = file_get_contents('php://input');
 } else {
-    $body = $_POST['payload'];
+    $body = @$_POST['payload'];
 }
 
 if (!$body) {
